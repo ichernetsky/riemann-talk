@@ -49,6 +49,56 @@
 
                 <section>
                     <section>
+                        <h2>Riemann dashboard</h2>
+                        <p>
+                            <a href="https://github.com/aphyr/riemann-dash">https://github.com/aphyr/riemann-dash</a>
+                        </p>
+                        <p>
+                            <blockquote>&ldquo;A JavaScript, WebSockets-powered dashboard for Riemann.&rdquo;</blockquote>
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2>What it looks like</h2>
+                        <img src="img/riemann-dashboard.png" alt="Riemann dashboard"/>
+                    </section>
+
+                    <section>
+                        <h2>Some highlights</h2>
+                        <p>
+                            <ul>
+                                <li>Real-time visualizations (subscribes to query channels using WebSockets);</li>
+                                <li>Includes a tiling windows manager;</li>
+                                <li>Multi-tabbed.</li>
+                            </ul>
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2>Installation on CentOS</h2>
+                        <p>
+                            <ul>
+                                <li>Install <code>SCL</code> (Software Collections);</li>
+                                <li>Run <code>yum install ruby193-ruby ruby193-ruby-devel ruby193-rubygems</code> as root;</li>
+                                <li>Run <code>scl enable ruby193 'gem install riemann-client riemann-tools riemann-dash thin'</code> as root;</li>
+                    </section>
+
+                    <section>
+                        <h2>Installation on CentOS (2)</h2>
+                        <p>
+                            <ul>
+                                <li>Run <code>scl enable ruby193 /opt/rh/ruby193/root/usr/local/bin/riemann-dash</code> from within a directory with <code>config.js</code> with content like:</li>
+                            </ul>
+                        </p>
+                        <p><pre><code>set :server, 'thin'
+set :port, 10080
+set :bind, '0.0.0.0'
+config[:ws_config] = 'config.json'</code></pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
                         <h2>InfluxDB</h2>
                         <p>
                             <a href="http://influxdb.com/">http://influxdb.com/</a>
