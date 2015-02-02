@@ -224,6 +224,169 @@ true</code></pre></p>
                     </section>
 
                     <section>
+                        <h2>Example</h2>
+                        <p>Print events to stdout or a log file</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(streams
+  (where (service "bar")
+    ; Print event to stdout
+    prn
+
+    ; Print :foo, then the event
+    #(prn :foo %)
+
+    ; Log event to the logfile and stdout
+    #(info %)
+
+    ; Log event using the same representation as prn
+    #(info (pr-str %))
+
+    ; Log some specific fields
+    #(info (:service %) (:metric %))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (2)</h2>
+                        <p>Filter events</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(streams
+  (where (state "error")
+    (email "delacroix@vonbraun.com"))
+  (where (description #"an+elids") ...)
+
+  (tagged "page" page-ops)
+  (tagged-all ["ops" "ddos"] (email "ops@githug.com"))
+
+  (where (>= (* metric 1000) 2.5))
+  (where (not (or (tagged "www")
+                  (and (state "ok") (nil? metric)))))
+
+  (where (some (fn [r] (re-find r service)) [#"cassandra disk .+"
+                                             #"cassandra net .+"
+                                             #"cassandra latency \d+"])
+    ...))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (3)</h2>
+                        <p>Set a threshold</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(streams
+  (where (<= 0 metric 5)
+    (with :state "ok" index)
+    (else
+      (with :state "warning" index))))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (4)</h2>
+                        <p>Measure your app's latency and the number of request per second</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(where (service "api req")
+  (percentiles 5 [0.5 0.95 0.99]
+    ; Percentiles will emit events like
+    ; {:service "api req 0.5" :metric 0.12}
+    index)
+
+  (with {:metric 1 :service "api reqs/sec"}
+    (rate 5 index)))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (5)</h2>
+                        <p>Report exceptions</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(tagged "exception"
+  (email "ops@foocorp.com"))
+
+(where (tagged "exception")
+  (with :metric 1
+    (by :service
+      (adjust [:service str " exception rate"]
+        (rate 10 index graph)))))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (6)</h2>
+                        <p>Detect down services</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">; You can control how often the index scans for expired
+; events with periodically-expire
+(periodically-expire 10)
+
+(streams
+  (changed-state {:init "ok"}
+    (email "ops@qualys.com")))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (7)</h2>
+                        <p>Find the host using the most CPU</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(coalesce (smap folds/maximum
+  (with {:service "max cpu" :host nil} prn)))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (8)</h2>
+                        <p>Count total number of hosts</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">; All services should be the same
+(with :service "distinct hosts"
+  ; Combine hosts and services
+  ; coalesce gets snapshot of the most recent event
+  ; from every host and service that passes through
+  ; that coalesce stream
+  (coalesce
+    ; Turn lists of events into a single event with
+    ; the count as its metric
+    (smap folds/count
+      ; Strip host field
+      (with :host nil
+        index))))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (9)</h2>
+                        <p>Arbitrary functions as streams</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(where (service "foo")
+  (fn [event]
+    ; Log a message
+    (info "I got an event:" event)
+
+    ; Then extract some fields and insert them into a DB.
+    (save-to-my-database (:description event) (:metric event))))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example (10)</h2>
+                        <p>Create your own stream function</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(defn hello-stream [& children]
+  (fn [e] (let [new-event (assoc e :hello :world)]
+    ; call-rescue is a standard library function that passes
+    ; the event on to all the child streams it was passed
+    (call-rescue new-event children))))
+
+(streams (hello-stream prn))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Example 11</h2>
+                        <p>Forward between Riemann servers</p>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(streams
+  (let [client (tcp-client :host "aggregator")]
+    (by [:host :service]
+       (changed :state
+                (forward client)))))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>More examples?</h2>
+                        <p>
+                            <ul>
+                                <li>Official HowTo guide: <a href="http://riemann.io/howto.html">http://riemann.io/howto.html</a></li>
+                                <ul>
+                                    <li>Contains a lot of examples including very advanced ones.</li>
+                                </ul>
+                                <li>You may want to talke a look at The Guardian's config: <a href="https://github.com/guardian/riemann-config">https://github.com/guardian/riemann-config</a></li>
+                                <li>API Reference: <a href="http://riemann.io/api.html">http://riemann.io/api.html</a></li>
+                            </ul>
+                        </p>
+                    </section>
+
+                    <section>
                         <h2>Integration with other services</h2>
                         <p>
                             <ul>
@@ -259,6 +422,7 @@ true</code></pre></p>
   (new java.net.DatagramPacket (. text getBytes) (. text length)
        influxdb-host influxdb-port))</code></pre></p>
                     </section>
+
                     <section>
                         <h2>Custom integration (3)</h2>
                         <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(defn influxdb-udp [event]
