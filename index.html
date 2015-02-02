@@ -378,7 +378,7 @@ config[:ws_config] = 'config.json'</code></pre></p>
 
                     <section>
                         <h2>Writing data through HTTP</h2>
-                        <p><small>Just make a POST request to <code>/db/&#x3C;database&#x3E;/series?u=&#x3C;user&#x3E;&#x26;p=&#x3C;pass&#x3E;</code></small></p>
+                        <p style="word-break: break-word;">Just make a POST request to <code>/db/&#x3C;database&#x3E;/series?u=&#x3C;user&#x3E;&#x26;p=&#x3C;pass&#x3E;</code></p>
                         <p><pre><code data-trim class="json">[
   {
     "name": "sys",
@@ -523,6 +523,18 @@ select * from log_lines where line =~ /error/i;</code></pre></p>
                             </ul>
                         </p>
                     </section>
+                </section>
+
+                <section>
+                    <h2>Installation with Puppet</h2>
+                    <p>
+                        <ul>
+                            <li>Not all packages are available in the official Qualys repos.</li>
+                            <li>We have Riemann and all puppetized in LM PODs already: <a href="https://stash.intranet.qualys.com/projects/OPS/repos/devops/browse/Puppet/modules/riemann" style="word-break: break-word;">https://stash.intranet.qualys.com/projects/OPS/repos/devops/browse/Puppet/modules/riemann</a></li>
+                            <li>Ops are to review and make it available to everybody.</li>
+                            <li>So stay tuned.</li>
+                        </ul>
+                    </p>
                 </section>
 
                 <section>
