@@ -677,6 +677,25 @@ select * from log_lines where line =~ /error/i;</code></pre></p>
                     </section>
 
                     <section>
+                        <h2>Grafana vs riemann-dash</h2>
+                        <p>
+                            <ul>
+                                <li>Grafana:</li>
+                                <ul>
+                                    <li>Talks to InfluxDB.</li>
+                                    <li>Has a richer UI and more features.</li>
+                                    <li>Fires queries in order to draw charts.</li>
+                                </ul>
+                                <li>Riemann-dash:</li>
+                                <ul>
+                                    <li>Talks directly to Riemann.</li>
+                                    <li>Subscribes to queries.</li>
+                                </ul>
+                            </ul>
+                        </p>
+                    </section>
+
+                    <section>
                         <h2>Grafana installation</h2>
                         <p>
                             <ul>
