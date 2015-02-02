@@ -223,6 +223,70 @@ tagged "product"
 true</code></pre></p>
                     </section>
 
+                    <section>
+                        <h2>Integration with other services</h2>
+                        <p>
+                            <ul>
+                                <li>Out of the box, you can forward events to: Bluefood, Campfire, Amazon CloudWatch, Datadog, Graphite, HipChat, InfluxDB, KairosDB, Keen IO, Librato Metrics, Logentries, LogStash, Mailgun, Nagios, OpenTSDB, OpsGenie, Pagerduty, Shinken, Slack.com, Stackdriver, Twilio, Xymon, you name it!</li>
+                                <li>Obviously, you can forward events to another Riemann instance.</li>
+                                <li>Obviously, you can implement your own forwarder.</li>
+                                <li>Obviously, even as a part of your Riemann config.</li>
+                            </ul>
+                    </section>
+
+                    <section>
+                        <h2>Custom integration</h2>
+                        <p>
+                            <ul>
+                                <li>Out of the box, Riemann is able forward events to InfluxDB only over HTTP.</li>
+                                <li>But we need to forward them via UDP.</li>
+                                <li>Before doing that, let's increase UDP buffer size:</li>
+                            </ul>
+                        </p>
+                        <p><pre><code data-trim>$ sysctl -w net.core.rmem_max=10485760</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Custom integration (2)</h2>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(require '[cheshire.core :as json])
+
+(def influxdb-host (. java.net.InetAddress getByName "127.0.0.1"))
+(def influxdb-port 4444)
+
+(def udp-socket (new java.net.DatagramSocket))
+
+(defn message [text]
+  (new java.net.DatagramPacket (. text getBytes) (. text length)
+       influxdb-host influxdb-port))</code></pre></p>
+                    </section>
+                    <section>
+                        <h2>Custom integration (3)</h2>
+                        <p><pre><code data-trim style="word-wrap: break-word;" class="clojure">(defn influxdb-udp [event]
+  (when (:metric event)
+    (when (:service event)
+      (let [hostname (if-let [h (:host event)] h "")
+            d (json/generate-string [{:name (:service event)
+                                      :columns ["name" "host"
+                                                "state" "value"]
+                                      :points [[(:service event)
+                                                hostname
+                                                (:state event)
+                                                (:metric event)]]}])]
+        (.send udp-socket (message data))))))</code></pre></p>
+                    </section>
+
+                    <section>
+                        <h2>Installation on CentOS</h2>
+                        <p>
+                            <ul>
+                                <li>Download RPM from <a href="http://riemann.io/">http://riemann.io/</a></li>
+                                <li>Install it.</li>
+                                <li>Edit <code>/etc/riemann/riemann.config</code></li>
+                                <li><code>service riemann restart</code></li>
+                            </ul>
+                        </p>
+                    </section>
+
                 </section>
 
                 <section>
